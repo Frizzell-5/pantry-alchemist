@@ -1,0 +1,440 @@
+import type { Equipment, MealType, Mood, Recipe, RecipeIngredient, Step, Unit, Difficulty } from "../lib/types.ts";
+import { INGREDIENT_MAP } from "./ingredients.ts";
+
+// Step text references ingredients as [[key]]; cook mode renders the scaled
+// amount inline ("Dice [[potato]]" → "Dice 2 potatoes").
+
+function I(key: string, amount: number | null, unit: Unit, extra: Partial<RecipeIngredient> = {}): RecipeIngredient {
+  const cat = INGREDIENT_MAP.get(key);
+  if (!cat) throw new Error(`Seed recipe uses unknown ingredient ${key}`);
+  return { key, ref: key, name: cat.label.toLowerCase(), amount, unit, ...extra };
+}
+const S = (text: string, minutes?: number, label?: string): Step =>
+  minutes ? { text, timer: { label: label ?? text.split(/[.,]/)[0].slice(0, 28), seconds: Math.round(minutes * 60) } } : { text };
+
+interface Def {
+  id: string; title: string; description: string; servings: number; time: number; difficulty: Difficulty;
+  mealType: MealType; cuisine: string; equipment: Equipment[]; moods: Mood[];
+  ingredients: RecipeIngredient[]; steps: Step[]; tips?: string[];
+}
+const R = (d: Def): Recipe => ({ ...d, tips: d.tips ?? [], source: "seed" });
+
+export const SEED_RECIPES: Recipe[] = [
+  R({
+    id: "skillet-smashed-potatoes", title: "Skillet Smashed Potatoes", cuisine: "American", mealType: "dinner",
+    description: "Boiled, smashed flat, and fried until shatteringly crisp. Potatoes at their most lovable.",
+    servings: 2, time: 30, difficulty: "easy", equipment: ["stovetop"], moods: ["cozy", "broke"],
+    ingredients: [I("potato", 4, "whole"), I("olive_oil", 3, "tbsp"), I("garlic", 2, "clove"), I("salt", 1, "tsp"), I("black_pepper", null, "to taste"), I("parsley", 1, "handful", { optional: true }), I("parmesan", 2, "tbsp", { optional: true })],
+    steps: [
+      S("Halve [[potato]] if large, cover with salted water, and boil until a fork slides in easily.", 15, "Boil potatoes"),
+      S("Drain and let them steam-dry for 2 minutes. Dry potatoes = crispy potatoes."),
+      S("Heat [[olive_oil]] in a big skillet over medium-high. Add potatoes and smash each flat with a glass or mug."),
+      S("Fry without touching until deeply golden, then flip.", 5, "Fry side one"),
+      S("Fry the second side and add sliced [[garlic]] for the last minute.", 4, "Fry side two"),
+      S("Finish with [[salt]], [[black_pepper]], [[parsley]], and [[parmesan]]."),
+    ],
+    tips: ["Leave space in the pan; crowded potatoes steam instead of crisp.", "Leftovers re-crisp beautifully in a dry pan."],
+  }),
+  R({
+    id: "microwave-loaded-potato", title: "Microwave Loaded Potato", cuisine: "American", mealType: "lunch",
+    description: "A baked potato in 8 minutes with no oven. Load it with whatever's in the fridge.",
+    servings: 1, time: 10, difficulty: "easy", equipment: ["microwave"], moods: ["lazy", "broke", "cozy"],
+    ingredients: [I("potato", 1, "whole"), I("butter", 1, "tbsp"), I("cheddar", 0.25, "cup"), I("sour_cream", 2, "tbsp", { optional: true }), I("green_onion", 1, "stalk", { optional: true }), I("salt", 1, "pinch"), I("black_pepper", null, "to taste")],
+    steps: [
+      S("Scrub [[potato]] and poke it all over with a fork."),
+      S("Microwave on a plate, flipping halfway, until soft when squeezed (use a towel!).", 7, "Microwave potato"),
+      S("Split it open, fluff the inside with a fork, and add [[butter]], [[salt]], and [[black_pepper]]."),
+      S("Top with [[cheddar]] and microwave 30 more seconds to melt.", 0.5, "Melt cheese"),
+      S("Finish with [[sour_cream]] and sliced [[green_onion]]."),
+    ],
+    tips: ["Leftover chili, beans, or broccoli all make excellent toppings."],
+  }),
+  R({
+    id: "potato-egg-hash", title: "Potato & Egg Breakfast Hash", cuisine: "American", mealType: "breakfast",
+    description: "Crispy diced potatoes, soft onions, and jammy eggs cracked right into the pan.",
+    servings: 2, time: 25, difficulty: "easy", equipment: ["stovetop", "onePot"], moods: ["cozy", "energy", "broke"],
+    ingredients: [I("potato", 2, "whole"), I("onion", 1, "whole"), I("bell_pepper", 1, "whole", { optional: true }), I("eggs", 4, "whole"), I("vegetable_oil", 2, "tbsp"), I("paprika", 1, "tsp"), I("salt", 1, "tsp"), I("hot_sauce", null, "to taste", { optional: true })],
+    steps: [
+      S("Dice [[potato]] into small cubes (smaller = faster). Dice [[onion]] and [[bell_pepper]]."),
+      S("Heat [[vegetable_oil]] in a skillet over medium-high. Add potatoes in one layer, cover, and cook, stirring occasionally.", 10, "Cook potatoes"),
+      S("Uncover, add the onion, pepper, [[paprika]], and [[salt]]. Cook until everything's browned.", 5, "Brown the hash"),
+      S("Make 4 wells, crack in [[eggs]], cover, and cook until the whites set.", 4, "Set the eggs"),
+      S("Serve straight from the pan with [[hot_sauce]]."),
+    ],
+  }),
+  R({
+    id: "cheesy-potato-soup", title: "Cheesy Potato Soup", cuisine: "American", mealType: "dinner",
+    description: "Thick, creamy, and blanket-level cozy. One pot, no blender needed.",
+    servings: 4, time: 35, difficulty: "easy", equipment: ["stovetop", "onePot"], moods: ["cozy", "broke"],
+    ingredients: [I("potato", 4, "whole"), I("onion", 1, "whole"), I("garlic", 2, "clove"), I("butter", 2, "tbsp"), I("flour", 2, "tbsp"), I("chicken_broth", 3, "cup"), I("milk", 1, "cup"), I("cheddar", 1, "cup"), I("salt", 1, "tsp"), I("bacon", 4, "slice", { optional: true }), I("green_onion", 2, "stalk", { optional: true })],
+    steps: [
+      S("If using [[bacon]], crisp it in the pot first, then set aside and keep a spoon of the fat."),
+      S("Melt [[butter]] in the pot. Cook diced [[onion]] and minced [[garlic]] until soft.", 5, "Soften onion"),
+      S("Stir in [[flour]] for 1 minute, then whisk in [[chicken_broth]] slowly."),
+      S("Add peeled, diced [[potato]] and simmer until very tender.", 15, "Simmer soup"),
+      S("Mash about half the potatoes right in the pot. Stir in [[milk]], [[cheddar]], and [[salt]] over low heat."),
+      S("Top with crumbled bacon and [[green_onion]]."),
+    ],
+    tips: ["Use veggie broth and skip bacon to make it vegetarian."],
+  }),
+  R({
+    id: "spanish-tortilla", title: "Tortilla Española", cuisine: "Spanish", mealType: "dinner",
+    description: "The Spanish potato omelette: silky, golden, and quietly impressive. Great cold the next day.",
+    servings: 4, time: 40, difficulty: "medium", equipment: ["stovetop"], moods: ["impress", "broke"],
+    ingredients: [I("potato", 3, "whole"), I("onion", 1, "whole"), I("eggs", 6, "whole"), I("olive_oil", 0.5, "cup"), I("salt", 1, "tsp")],
+    steps: [
+      S("Peel and thinly slice [[potato]] and [[onion]]."),
+      S("Warm [[olive_oil]] in a nonstick pan over medium-low. Add potatoes and onion and gently poach until tender but not browned.", 15, "Poach potatoes"),
+      S("Beat [[eggs]] with [[salt]]. Drain the potatoes (save the oil!) and fold them into the eggs. Rest 5 minutes.", 5, "Rest the mixture"),
+      S("Heat 2 tbsp of the saved oil, pour in the mixture, and cook on medium-low until the edges set.", 6, "Cook first side"),
+      S("Cover the pan with a plate, flip confidently, slide it back in, and cook the other side.", 4, "Cook second side"),
+    ],
+    tips: ["Flip over the sink the first time. Everyone does."],
+  }),
+  R({
+    id: "garlic-butter-ramen", title: "Garlic Butter Ramen Upgrade", cuisine: "Japanese-ish", mealType: "lunch",
+    description: "Instant ramen glow-up: garlicky butter sauce, a jammy egg, and green onions.",
+    servings: 1, time: 10, difficulty: "easy", equipment: ["stovetop", "onePot"], moods: ["lazy", "broke", "cozy"],
+    ingredients: [I("ramen", 1, "pack"), I("butter", 1, "tbsp"), I("garlic", 2, "clove"), I("soy_sauce", 1, "tbsp"), I("eggs", 1, "whole"), I("green_onion", 1, "stalk", { optional: true }), I("chili_flakes", 1, "pinch", { optional: true })],
+    steps: [
+      S("Bring a small pot of water to a boil. Lower in [[eggs]] and cook.", 6.5, "Jammy egg"),
+      S("Add [[ramen]] noodles (skip the flavor packet) to the same water and cook.", 3, "Cook noodles"),
+      S("Drain, keeping a splash of water. Peel the egg under cold water."),
+      S("In the same pot, melt [[butter]] and sizzle minced [[garlic]] for 30 seconds.", 0.5, "Sizzle garlic"),
+      S("Toss noodles with [[soy_sauce]] and the splash of water. Top with the halved egg, [[green_onion]], and [[chili_flakes]]."),
+    ],
+  }),
+  R({
+    id: "egg-fried-rice", title: "Weeknight Egg Fried Rice", cuisine: "Chinese", mealType: "dinner",
+    description: "The best use of leftover rice ever invented. Ten minutes, one pan, endlessly remixable.",
+    servings: 2, time: 15, difficulty: "easy", equipment: ["stovetop", "onePot"], moods: ["lazy", "broke", "energy"],
+    ingredients: [I("rice", 2, "cup", { note: "cooked, ideally day-old" }), I("eggs", 2, "whole"), I("frozen_peas", 0.5, "cup"), I("green_onion", 2, "stalk"), I("garlic", 1, "clove"), I("soy_sauce", 2, "tbsp"), I("vegetable_oil", 2, "tbsp"), I("sesame_oil", 1, "tsp", { optional: true })],
+    steps: [
+      S("Heat [[vegetable_oil]] in a wide pan over high heat until shimmering."),
+      S("Scramble [[eggs]] quickly, then push to the side."),
+      S("Add minced [[garlic]], [[frozen_peas]], and the white parts of [[green_onion]]. Stir-fry 1 minute.", 1, "Stir-fry veg"),
+      S("Add [[rice]], breaking up clumps, and fry until hot and a little toasty.", 3, "Fry the rice"),
+      S("Season with [[soy_sauce]] and [[sesame_oil]]; toss with the green onion tops."),
+    ],
+    tips: ["Fresh rice? Spread it on a plate and freeze 10 minutes to dry it out."],
+  }),
+  R({
+    id: "mug-mac-cheese", title: "Mug Mac & Cheese", cuisine: "American", mealType: "snack",
+    description: "Dorm-room mac and cheese made in a mug. Shockingly legit.",
+    servings: 1, time: 8, difficulty: "easy", equipment: ["microwave"], moods: ["lazy", "cozy", "broke"],
+    ingredients: [I("short_pasta", 0.33, "cup"), I("milk", 0.25, "cup"), I("cheddar", 0.33, "cup"), I("salt", 1, "pinch"), I("black_pepper", null, "to taste")],
+    steps: [
+      S("Add [[short_pasta]] and ½ cup water to a big mug with [[salt]]."),
+      S("Microwave in 2-minute bursts, stirring between, until the pasta is tender and water's absorbed.", 4, "Microwave pasta"),
+      S("Stir in [[milk]] and [[cheddar]]. Microwave 30 seconds and stir until creamy.", 0.5, "Melt cheese"),
+      S("Crack in [[black_pepper]] and eat it from the mug."),
+    ],
+    tips: ["Use a bigger mug than you think. It foams."],
+  }),
+  R({
+    id: "aglio-e-olio", title: "Spaghetti Aglio e Olio", cuisine: "Italian", mealType: "dinner",
+    description: "Garlic, oil, chili, pasta. Five ingredients that taste like a candlelit trattoria.",
+    servings: 2, time: 15, difficulty: "easy", equipment: ["stovetop"], moods: ["broke", "impress", "lazy"],
+    ingredients: [I("pasta", 200, "g"), I("olive_oil", 0.25, "cup"), I("garlic", 5, "clove"), I("chili_flakes", 0.5, "tsp"), I("parsley", 1, "handful", { optional: true }), I("parmesan", 2, "tbsp", { optional: true }), I("salt", 1, "tbsp", { note: "for the pasta water" })],
+    steps: [
+      S("Boil [[pasta]] in water with [[salt]].", 9, "Boil spaghetti"),
+      S("Meanwhile, thinly slice [[garlic]]. Warm it in [[olive_oil]] over low heat until pale gold.", 4, "Toast garlic"),
+      S("Add [[chili_flakes]]. Scoop out a mug of pasta water, then drain."),
+      S("Toss the pasta in the garlic oil with a few splashes of pasta water until glossy."),
+      S("Finish with [[parsley]] and [[parmesan]]."),
+    ],
+    tips: ["Don't let the garlic brown; bitter garlic is the only way to mess this up."],
+  }),
+  R({
+    id: "one-pot-tomato-pasta", title: "One-Pot Tomato Basil Pasta", cuisine: "Italian", mealType: "dinner",
+    description: "Everything goes in one pot, raw pasta included. Sauce makes itself.",
+    servings: 3, time: 20, difficulty: "easy", equipment: ["stovetop", "onePot"], moods: ["lazy", "cozy", "broke"],
+    ingredients: [I("short_pasta", 250, "g"), I("canned_tomatoes", 1, "can"), I("onion", 1, "whole"), I("garlic", 3, "clove"), I("olive_oil", 2, "tbsp"), I("veg_broth", 2.5, "cup"), I("basil", 1, "handful", { optional: true }), I("italian_seasoning", 1, "tsp"), I("parmesan", 0.25, "cup", { optional: true }), I("salt", 1, "tsp")],
+    steps: [
+      S("Add [[short_pasta]], [[canned_tomatoes]], sliced [[onion]], sliced [[garlic]], [[olive_oil]], [[italian_seasoning]], and [[salt]] to a wide pot."),
+      S("Pour in [[veg_broth]] and bring to a boil."),
+      S("Boil, stirring often, until the pasta is cooked and the liquid has thickened to sauce.", 11, "Cook pasta"),
+      S("Stir in torn [[basil]] and [[parmesan]]."),
+    ],
+  }),
+  R({
+    id: "black-bean-quesadillas", title: "Crispy Black Bean Quesadillas", cuisine: "Mexican", mealType: "lunch",
+    description: "Smashed beans, melty cheese, crisp tortilla. Ready before you finish deciding.",
+    servings: 2, time: 12, difficulty: "easy", equipment: ["stovetop"], moods: ["lazy", "broke", "energy"],
+    ingredients: [I("tortilla", 4, "whole"), I("black_beans", 1, "can"), I("cheddar", 1, "cup"), I("cumin", 0.5, "tsp"), I("salsa", 0.25, "cup", { optional: true }), I("sour_cream", 2, "tbsp", { optional: true }), I("vegetable_oil", 1, "tsp")],
+    steps: [
+      S("Drain [[black_beans]] and roughly mash with [[cumin]] and a pinch of salt."),
+      S("Spread beans on half of each [[tortilla]], top with [[cheddar]], and fold."),
+      S("Brush a skillet with [[vegetable_oil]] and cook quesadillas over medium until golden on each side.", 3, "First side"),
+      S("Flip and crisp the other side until the cheese is melted.", 2, "Second side"),
+      S("Cut into wedges. Serve with [[salsa]] and [[sour_cream]]."),
+    ],
+  }),
+  R({
+    id: "chickpea-coconut-curry", title: "Chickpea Coconut Curry", cuisine: "Indian-inspired", mealType: "dinner",
+    description: "Creamy, gently spiced, entirely from cans. A reliable hug in a bowl.",
+    servings: 4, time: 30, difficulty: "easy", equipment: ["stovetop", "onePot"], moods: ["cozy", "broke"],
+    ingredients: [I("chickpeas", 1, "can"), I("coconut_milk", 1, "can"), I("canned_tomatoes", 1, "can"), I("onion", 1, "whole"), I("garlic", 3, "clove"), I("ginger", 1, "tbsp", { optional: true }), I("curry_powder", 2, "tbsp"), I("vegetable_oil", 1, "tbsp"), I("spinach", 2, "handful", { optional: true }), I("salt", 1, "tsp"), I("rice", 1, "cup", { optional: true, note: "uncooked, to serve" })],
+    steps: [
+      S("If serving with [[rice]], start it now."),
+      S("Cook diced [[onion]] in [[vegetable_oil]] until soft.", 5, "Soften onion"),
+      S("Add minced [[garlic]], [[ginger]], and [[curry_powder]]. Stir 1 minute until fragrant.", 1, "Bloom spices"),
+      S("Add [[canned_tomatoes]], drained [[chickpeas]], [[coconut_milk]], and [[salt]]. Simmer until thick.", 15, "Simmer curry"),
+      S("Stir in [[spinach]] until wilted. Taste and adjust salt."),
+    ],
+    tips: ["Squeeze of lime at the end makes it sing."],
+  }),
+  R({
+    id: "shakshuka", title: "Shakshuka", cuisine: "North African", mealType: "breakfast",
+    description: "Eggs poached in spiced tomato sauce. Breakfast, lunch, or impress-your-date dinner.",
+    servings: 2, time: 25, difficulty: "easy", equipment: ["stovetop", "onePot"], moods: ["impress", "cozy", "energy"],
+    ingredients: [I("canned_tomatoes", 1, "can"), I("eggs", 4, "whole"), I("onion", 1, "whole"), I("bell_pepper", 1, "whole"), I("garlic", 2, "clove"), I("cumin", 1, "tsp"), I("paprika", 1, "tsp"), I("olive_oil", 2, "tbsp"), I("feta", 0.25, "cup", { optional: true }), I("cilantro", 1, "handful", { optional: true }), I("bread", 2, "slice", { optional: true })],
+    steps: [
+      S("Cook sliced [[onion]] and [[bell_pepper]] in [[olive_oil]] until soft.", 6, "Soften veg"),
+      S("Add [[garlic]], [[cumin]], and [[paprika]] for 30 seconds."),
+      S("Pour in [[canned_tomatoes]] and simmer until thickened.", 8, "Simmer sauce"),
+      S("Make 4 wells and crack in [[eggs]]. Cover and cook until whites set but yolks wobble.", 6, "Poach eggs"),
+      S("Scatter [[feta]] and [[cilantro]]. Serve with [[bread]] for dunking."),
+    ],
+  }),
+  R({
+    id: "peanut-noodles", title: "Sesame Peanut Noodles", cuisine: "Chinese-inspired", mealType: "lunch",
+    description: "Slurpy noodles in a 2-minute peanut sauce. Great warm, even better cold.",
+    servings: 2, time: 15, difficulty: "easy", equipment: ["stovetop"], moods: ["energy", "lazy", "broke"],
+    ingredients: [I("pasta", 200, "g"), I("peanut_butter", 3, "tbsp"), I("soy_sauce", 2, "tbsp"), I("honey", 1, "tbsp"), I("vinegar", 1, "tbsp"), I("garlic", 1, "clove"), I("sriracha", 1, "tsp"), I("cucumber", 1, "whole", { optional: true }), I("green_onion", 2, "stalk", { optional: true })],
+    steps: [
+      S("Cook [[pasta]] until just tender.", 9, "Cook noodles"),
+      S("Whisk [[peanut_butter]], [[soy_sauce]], [[honey]], [[vinegar]], grated [[garlic]], and [[sriracha]] with 3 tbsp hot water."),
+      S("Drain the noodles and toss with the sauce."),
+      S("Top with matchstick [[cucumber]] and [[green_onion]]."),
+    ],
+  }),
+  R({
+    id: "tuna-melt", title: "Diner Tuna Melt", cuisine: "American", mealType: "lunch",
+    description: "Golden, griddled, gooey. A pantry-can classic.",
+    servings: 2, time: 12, difficulty: "easy", equipment: ["stovetop"], moods: ["lazy", "cozy", "broke"],
+    ingredients: [I("tuna", 1, "can"), I("mayo", 2, "tbsp"), I("mustard", 1, "tsp", { optional: true }), I("bread", 4, "slice"), I("cheddar", 4, "slice"), I("butter", 1, "tbsp"), I("red_onion", 0.25, "whole", { optional: true })],
+    steps: [
+      S("Mix drained [[tuna]] with [[mayo]], [[mustard]], and finely diced [[red_onion]]."),
+      S("Butter one side of each [[bread]] slice with [[butter]]."),
+      S("Build sandwiches butter-side out: bread, [[cheddar]], tuna, cheese, bread."),
+      S("Griddle over medium-low until golden and melty.", 3, "First side"),
+      S("Flip and toast the other side.", 3, "Second side"),
+    ],
+  }),
+  R({
+    id: "overnight-oats", title: "Overnight Oats", cuisine: "Café", mealType: "breakfast",
+    description: "Two minutes tonight, breakfast waiting tomorrow. Endless toppings.",
+    servings: 1, time: 5, difficulty: "easy", equipment: ["noCook"], moods: ["energy", "lazy", "broke"],
+    ingredients: [I("oats", 0.5, "cup"), I("milk", 0.5, "cup"), I("greek_yogurt", 0.25, "cup", { optional: true }), I("honey", 1, "tbsp"), I("cinnamon", 1, "pinch", { optional: true }), I("berries", 0.33, "cup", { optional: true }), I("peanut_butter", 1, "tbsp", { optional: true })],
+    steps: [
+      S("In a jar, stir [[oats]], [[milk]], [[greek_yogurt]], [[honey]], and [[cinnamon]]."),
+      S("Cover and refrigerate overnight (or at least 4 hours)."),
+      S("Top with [[berries]] and [[peanut_butter]] in the morning."),
+    ],
+  }),
+  R({
+    id: "banana-oat-pancakes", title: "3-Ingredient Banana Pancakes", cuisine: "Café", mealType: "breakfast",
+    description: "No flour, no fuss: banana, eggs, oats. Soft, sweet, and filling.",
+    servings: 2, time: 15, difficulty: "easy", equipment: ["stovetop"], moods: ["energy", "broke", "cozy"],
+    ingredients: [I("banana", 2, "whole"), I("eggs", 2, "whole"), I("oats", 0.5, "cup"), I("butter", 1, "tsp"), I("cinnamon", 1, "pinch", { optional: true }), I("maple_syrup", 2, "tbsp", { optional: true })],
+    steps: [
+      S("Mash [[banana]] very well, then whisk in [[eggs]], [[oats]], and [[cinnamon]]."),
+      S("Melt [[butter]] in a nonstick pan over medium-low. Spoon in small pancakes."),
+      S("Cook until bubbles form and the edges set, then flip gently.", 2, "First side"),
+      S("Cook the second side until golden.", 1.5, "Second side"),
+      S("Serve with [[maple_syrup]]."),
+    ],
+    tips: ["Keep them small; banana pancakes are softer and harder to flip."],
+  }),
+  R({
+    id: "lentil-soup", title: "Lemony Lentil Soup", cuisine: "Mediterranean", mealType: "dinner",
+    description: "Earthy, bright, and deeply cheap. Makes a pot that lasts the week.",
+    servings: 4, time: 35, difficulty: "easy", equipment: ["stovetop", "onePot"], moods: ["cozy", "broke", "energy"],
+    ingredients: [I("lentils", 2, "can"), I("onion", 1, "whole"), I("carrot", 2, "whole"), I("celery", 2, "stalk", { optional: true }), I("garlic", 3, "clove"), I("cumin", 1, "tsp"), I("veg_broth", 4, "cup"), I("lemon", 1, "whole"), I("olive_oil", 2, "tbsp"), I("salt", 1, "tsp"), I("spinach", 2, "handful", { optional: true })],
+    steps: [
+      S("Cook diced [[onion]], [[carrot]], and [[celery]] in [[olive_oil]] until softened.", 8, "Soften veg"),
+      S("Stir in minced [[garlic]] and [[cumin]] for 1 minute."),
+      S("Add drained [[lentils]], [[veg_broth]], and [[salt]]. Simmer.", 15, "Simmer soup"),
+      S("Mash a few lentils against the pot to thicken. Stir in [[spinach]]."),
+      S("Finish with the juice of [[lemon]]."),
+    ],
+  }),
+  R({
+    id: "chicken-broccoli-stir-fry", title: "Garlic Ginger Chicken Stir-Fry", cuisine: "Chinese-inspired", mealType: "dinner",
+    description: "Glossy, savory chicken and broccoli faster than delivery.",
+    servings: 2, time: 25, difficulty: "medium", equipment: ["stovetop"], moods: ["energy", "impress"],
+    ingredients: [I("chicken_breast", 1, "lb"), I("broccoli", 2, "cup"), I("garlic", 3, "clove"), I("ginger", 1, "tbsp"), I("soy_sauce", 3, "tbsp"), I("honey", 1, "tbsp"), I("cornstarch", 1, "tbsp"), I("vegetable_oil", 2, "tbsp"), I("rice", 1, "cup", { note: "uncooked, to serve" })],
+    steps: [
+      S("Start [[rice]] cooking.", 18, "Cook rice"),
+      S("Slice [[chicken_breast]] thin and toss with half the [[cornstarch]] and a pinch of salt."),
+      S("Whisk [[soy_sauce]], [[honey]], the rest of the cornstarch, and ¼ cup water."),
+      S("Sear chicken in [[vegetable_oil]] over high heat until browned and cooked through. Remove.", 5, "Sear chicken"),
+      S("Stir-fry [[broccoli]] with a splash of water until bright green.", 3, "Cook broccoli"),
+      S("Add [[garlic]] and [[ginger]], then the chicken and sauce. Toss until glossy and serve over rice."),
+    ],
+  }),
+  R({
+    id: "sheet-pan-sausage", title: "Sheet Pan Sausage & Potatoes", cuisine: "American", mealType: "dinner",
+    description: "Chop, toss, roast, done. The oven does all the work.",
+    servings: 3, time: 40, difficulty: "easy", equipment: ["oven", "onePot"], moods: ["lazy", "cozy"],
+    ingredients: [I("sausage", 4, "whole"), I("potato", 3, "whole"), I("bell_pepper", 1, "whole"), I("onion", 1, "whole"), I("olive_oil", 2, "tbsp"), I("smoked_paprika", 1, "tsp"), I("garlic_powder", 1, "tsp"), I("salt", 1, "tsp"), I("mustard", 1, "tbsp", { optional: true })],
+    steps: [
+      S("Heat the oven to 425°F."),
+      S("Cut [[potato]] into bite-size chunks, [[bell_pepper]] and [[onion]] into wedges, and [[sausage]] into coins."),
+      S("Toss everything on a sheet pan with [[olive_oil]], [[smoked_paprika]], [[garlic_powder]], and [[salt]]. Spread it out."),
+      S("Roast, flipping halfway, until the potatoes are crispy.", 30, "Roast"),
+      S("Serve with [[mustard]] for dipping."),
+    ],
+  }),
+  R({
+    id: "honey-garlic-chicken", title: "Sticky Honey Garlic Chicken", cuisine: "American", mealType: "dinner",
+    description: "Crispy-skinned thighs in a glossy, sweet-salty glaze. Looks fancy, isn't.",
+    servings: 2, time: 30, difficulty: "medium", equipment: ["stovetop"], moods: ["impress", "cozy"],
+    ingredients: [I("chicken_thigh", 4, "whole"), I("honey", 3, "tbsp"), I("soy_sauce", 2, "tbsp"), I("garlic", 4, "clove"), I("vinegar", 1, "tbsp"), I("vegetable_oil", 1, "tbsp"), I("salt", 1, "pinch"), I("green_onion", 1, "stalk", { optional: true })],
+    steps: [
+      S("Pat [[chicken_thigh]] dry and season with [[salt]]."),
+      S("Sear skin-side down in [[vegetable_oil]] over medium until deeply golden.", 8, "Sear skin side"),
+      S("Flip and cook until cooked through (165°F inside).", 7, "Cook through"),
+      S("Pour off most of the fat. Add minced [[garlic]], then [[honey]], [[soy_sauce]], and [[vinegar]]."),
+      S("Bubble and spoon the glaze over until sticky.", 2, "Reduce glaze"),
+      S("Scatter [[green_onion]]."),
+    ],
+  }),
+  R({
+    id: "pan-con-tomate", title: "Garlicky Tomato Toast", cuisine: "Spanish", mealType: "snack",
+    description: "Pan con tomate: crunchy toast rubbed with garlic and ripe tomato. Simple magic.",
+    servings: 2, time: 8, difficulty: "easy", equipment: ["stovetop"], moods: ["lazy", "broke", "impress"],
+    ingredients: [I("bread", 4, "slice"), I("tomato", 2, "whole"), I("garlic", 1, "clove"), I("olive_oil", 2, "tbsp"), I("salt", 1, "pinch")],
+    steps: [
+      S("Toast [[bread]] in a dry pan or toaster until very crisp."),
+      S("Rub each slice with the cut side of [[garlic]]."),
+      S("Halve [[tomato]] and grate the cut side on a box grater; discard the skin."),
+      S("Spoon tomato over toast, drizzle [[olive_oil]], and sprinkle [[salt]]."),
+    ],
+  }),
+  R({
+    id: "avocado-egg-toast", title: "Jammy Egg Avocado Toast", cuisine: "Café", mealType: "breakfast",
+    description: "The protein-packed classic. Lime, chili, and a perfect 7-minute egg.",
+    servings: 1, time: 10, difficulty: "easy", equipment: ["stovetop"], moods: ["energy", "lazy"],
+    ingredients: [I("bread", 2, "slice"), I("avocado", 1, "whole"), I("eggs", 2, "whole"), I("lime", 0.5, "whole", { optional: true }), I("chili_flakes", 1, "pinch"), I("salt", 1, "pinch"), I("everything_bagel", 1, "tsp", { optional: true })],
+    steps: [
+      S("Boil [[eggs]] for jammy yolks, then cool in cold water.", 7, "Jammy eggs"),
+      S("Toast [[bread]]."),
+      S("Mash [[avocado]] with [[lime]] juice and [[salt]]; spread on toast."),
+      S("Top with halved eggs, [[chili_flakes]], and [[everything_bagel]]."),
+    ],
+  }),
+  R({
+    id: "mug-brownie", title: "Molten Mug Brownie", cuisine: "Café", mealType: "dessert",
+    description: "Gooey chocolate brownie for one, in 90 seconds. Dangerous knowledge.",
+    servings: 1, time: 5, difficulty: "easy", equipment: ["microwave"], moods: ["cozy", "lazy"],
+    ingredients: [I("flour", 4, "tbsp"), I("sugar", 3, "tbsp"), I("cocoa", 2, "tbsp"), I("vegetable_oil", 2, "tbsp"), I("milk", 3, "tbsp"), I("salt", 1, "pinch"), I("chocolate_chips", 1, "tbsp", { optional: true }), I("vanilla", 0.25, "tsp", { optional: true })],
+    steps: [
+      S("Stir [[flour]], [[sugar]], [[cocoa]], and [[salt]] in a mug."),
+      S("Mix in [[vegetable_oil]], [[milk]], and [[vanilla]] until smooth. Drop [[chocolate_chips]] on top."),
+      S("Microwave until just set on top but fudgy underneath.", 1.25, "Microwave"),
+      S("Let it cool for a minute. It's lava."),
+    ],
+  }),
+  R({
+    id: "cinnamon-tortilla-crisps", title: "Cinnamon Sugar Tortilla Crisps", cuisine: "Mexican-inspired", mealType: "dessert",
+    description: "Churro-ish crunchy triangles from leftover tortillas.",
+    servings: 2, time: 10, difficulty: "easy", equipment: ["stovetop"], moods: ["lazy", "broke", "cozy"],
+    ingredients: [I("tortilla", 3, "whole"), I("butter", 2, "tbsp"), I("sugar", 2, "tbsp"), I("cinnamon", 1, "tsp")],
+    steps: [
+      S("Mix [[sugar]] and [[cinnamon]] on a plate."),
+      S("Melt [[butter]] in a skillet and fry each [[tortilla]] until golden and puffy on both sides.", 2, "Fry tortilla"),
+      S("Immediately press both sides in cinnamon sugar, then cut into triangles."),
+    ],
+  }),
+  R({
+    id: "burrito-bowl", title: "Dorm Burrito Bowl", cuisine: "Mexican", mealType: "lunch",
+    description: "Rice, beans, corn, salsa, cheese, lime. Assemble-only once the rice is done.",
+    servings: 2, time: 20, difficulty: "easy", equipment: ["stovetop", "microwave"], moods: ["energy", "broke", "lazy"],
+    ingredients: [I("rice", 1, "cup", { note: "uncooked" }), I("black_beans", 1, "can"), I("canned_corn", 1, "cup"), I("salsa", 0.5, "cup"), I("cheddar", 0.5, "cup"), I("lime", 1, "whole"), I("cumin", 0.5, "tsp"), I("avocado", 1, "whole", { optional: true }), I("sour_cream", 2, "tbsp", { optional: true })],
+    steps: [
+      S("Cook [[rice]] and stir in half the [[lime]] juice.", 18, "Cook rice"),
+      S("Warm drained [[black_beans]] and [[canned_corn]] with [[cumin]] in the microwave.", 2, "Warm beans"),
+      S("Build bowls: rice, beans and corn, [[salsa]], [[cheddar]], sliced [[avocado]], and [[sour_cream]]."),
+      S("Squeeze the remaining lime over the top."),
+    ],
+  }),
+  R({
+    id: "tomato-egg-stir-fry", title: "Tomato & Egg Stir-Fry", cuisine: "Chinese", mealType: "dinner",
+    description: "番茄炒蛋: sweet-savory saucy tomatoes with soft eggs. Comfort food for millions.",
+    servings: 2, time: 12, difficulty: "easy", equipment: ["stovetop"], moods: ["cozy", "broke", "lazy"],
+    ingredients: [I("tomato", 3, "whole"), I("eggs", 4, "whole"), I("sugar", 1, "tsp"), I("salt", 0.5, "tsp"), I("vegetable_oil", 2, "tbsp"), I("green_onion", 1, "stalk", { optional: true }), I("rice", 1, "cup", { optional: true, note: "uncooked, to serve" })],
+    steps: [
+      S("Beat [[eggs]] with a pinch of the [[salt]]. Cut [[tomato]] into wedges."),
+      S("Scramble eggs in half the [[vegetable_oil]] over medium-high until just set; remove.", 1, "Soft scramble"),
+      S("Add remaining oil and tomatoes. Cook until they slump into a sauce.", 4, "Cook tomatoes"),
+      S("Stir in [[sugar]] and the rest of the salt, then fold the eggs back in."),
+      S("Top with [[green_onion]] and serve over [[rice]]."),
+    ],
+  }),
+  R({
+    id: "lemony-pea-pasta", title: "Lemony Butter Pea Pasta", cuisine: "Italian", mealType: "dinner",
+    description: "Frozen peas, butter, lemon, parmesan. Springtime in ten minutes.",
+    servings: 2, time: 15, difficulty: "easy", equipment: ["stovetop", "onePot"], moods: ["lazy", "energy", "impress"],
+    ingredients: [I("short_pasta", 200, "g"), I("frozen_peas", 1, "cup"), I("butter", 2, "tbsp"), I("lemon", 1, "whole"), I("parmesan", 0.5, "cup"), I("black_pepper", 0.5, "tsp"), I("salt", 1, "tbsp", { note: "for the water" })],
+    steps: [
+      S("Boil [[short_pasta]] in water with [[salt]]. Add [[frozen_peas]] for the last 2 minutes.", 10, "Boil pasta"),
+      S("Scoop out a mug of pasta water, then drain."),
+      S("Toss with [[butter]], zest and juice of [[lemon]], [[parmesan]], and a splash of pasta water until creamy."),
+      S("Finish with lots of [[black_pepper]]."),
+    ],
+  }),
+  R({
+    id: "crispy-tofu-bowl", title: "Crispy Sticky Tofu Bowl", cuisine: "Korean-inspired", mealType: "dinner",
+    description: "Cornstarch-crisp tofu in a sweet-spicy glaze over rice. Fully vegan.",
+    servings: 2, time: 30, difficulty: "medium", equipment: ["stovetop"], moods: ["energy", "impress"],
+    ingredients: [I("tofu", 400, "g"), I("cornstarch", 2, "tbsp"), I("soy_sauce", 2, "tbsp"), I("maple_syrup", 1, "tbsp"), I("gochujang", 1, "tbsp"), I("garlic", 1, "clove"), I("vegetable_oil", 3, "tbsp"), I("rice", 1, "cup", { note: "uncooked" }), I("green_onion", 1, "stalk", { optional: true }), I("cucumber", 1, "whole", { optional: true })],
+    steps: [
+      S("Start the [[rice]].", 18, "Cook rice"),
+      S("Press [[tofu]] in a towel, cube it, and toss in [[cornstarch]]."),
+      S("Fry in [[vegetable_oil]] over medium-high, turning, until crisp on all sides.", 8, "Crisp tofu"),
+      S("Whisk [[soy_sauce]], [[maple_syrup]], [[gochujang]], and grated [[garlic]]. Pour over tofu and toss until sticky."),
+      S("Serve over rice with sliced [[cucumber]] and [[green_onion]]."),
+    ],
+  }),
+  R({
+    id: "sweet-potato-tacos", title: "Sweet Potato Black Bean Tacos", cuisine: "Mexican", mealType: "dinner",
+    description: "Microwave-softened, pan-crisped sweet potatoes with smoky beans.",
+    servings: 2, time: 20, difficulty: "easy", equipment: ["microwave", "stovetop"], moods: ["energy", "broke", "cozy"],
+    ingredients: [I("sweet_potato", 1, "whole"), I("black_beans", 1, "can"), I("tortilla", 6, "whole"), I("chili_powder", 1, "tsp"), I("lime", 1, "whole"), I("vegetable_oil", 1, "tbsp"), I("salt", 0.5, "tsp"), I("cilantro", 1, "handful", { optional: true }), I("sour_cream", 3, "tbsp", { optional: true })],
+    steps: [
+      S("Dice [[sweet_potato]] and microwave in a covered bowl with a splash of water until just tender.", 5, "Microwave sweet potato"),
+      S("Crisp in [[vegetable_oil]] with [[chili_powder]] and [[salt]] over medium-high.", 5, "Crisp sweet potato"),
+      S("Add drained [[black_beans]] and warm through; squeeze in half the [[lime]]."),
+      S("Warm [[tortilla]] in a dry pan and fill. Top with [[cilantro]], [[sour_cream]], and more lime."),
+    ],
+  }),
+  R({
+    id: "clean-out-frittata", title: "Fridge Clean-Out Frittata", cuisine: "Italian", mealType: "breakfast",
+    description: "Every sad vegetable gets a second chance in a puffy, cheesy frittata.",
+    servings: 4, time: 25, difficulty: "easy", equipment: ["stovetop"], moods: ["broke", "cozy", "impress"],
+    ingredients: [I("eggs", 8, "whole"), I("milk", 0.25, "cup"), I("cheddar", 0.5, "cup"), I("onion", 1, "whole"), I("spinach", 2, "handful", { optional: true }), I("bell_pepper", 1, "whole", { optional: true }), I("mushroom", 1, "cup", { optional: true }), I("olive_oil", 1, "tbsp"), I("salt", 0.5, "tsp")],
+    steps: [
+      S("Whisk [[eggs]], [[milk]], [[salt]], and half the [[cheddar]]."),
+      S("In an oven-safe or nonstick pan, cook diced [[onion]], [[bell_pepper]], and [[mushroom]] in [[olive_oil]] until soft.", 6, "Cook veg"),
+      S("Wilt in [[spinach]], then pour the eggs over evenly."),
+      S("Cover and cook over low heat until the center is just set.", 10, "Set frittata"),
+      S("Scatter the rest of the cheese, cover 1 more minute to melt, and slice into wedges."),
+    ],
+    tips: ["Any cooked leftover (pasta, potatoes, rice) works here too."],
+  }),
+  R({
+    id: "pantry-minestrone", title: "Pantry Minestrone", cuisine: "Italian", mealType: "dinner",
+    description: "Beans, pasta, tomatoes, and whatever veg you've got, simmered into something soulful.",
+    servings: 4, time: 35, difficulty: "easy", equipment: ["stovetop", "onePot"], moods: ["cozy", "broke"],
+    ingredients: [I("kidney_beans", 1, "can"), I("canned_tomatoes", 1, "can"), I("short_pasta", 0.75, "cup"), I("onion", 1, "whole"), I("carrot", 2, "whole"), I("garlic", 2, "clove"), I("veg_broth", 4, "cup"), I("frozen_veg", 1, "cup", { optional: true }), I("italian_seasoning", 1, "tsp"), I("olive_oil", 2, "tbsp"), I("parmesan", 0.25, "cup", { optional: true }), I("salt", 1, "tsp")],
+    steps: [
+      S("Cook diced [[onion]] and [[carrot]] in [[olive_oil]] until softened.", 7, "Soften veg"),
+      S("Add [[garlic]] and [[italian_seasoning]] for 1 minute."),
+      S("Add [[canned_tomatoes]], [[veg_broth]], drained [[kidney_beans]], and [[salt]]. Bring to a boil."),
+      S("Add [[short_pasta]] and [[frozen_veg]]; simmer until the pasta is tender.", 12, "Simmer pasta"),
+      S("Serve with [[parmesan]] and a drizzle of oil."),
+    ],
+  }),
+];
