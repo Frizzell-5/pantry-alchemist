@@ -102,4 +102,4 @@ export const MOOD_META = {
   broke: { emoji: "🪙", label: "Broke" },
 } as const;
 
-export const SOURCE_BADGE: Record<string, string> = { ai: "✦ AI original", chaos: "🌀 Chaos creation", remix: "♻️ Leftover remix", offline: "📦 Pantry template", seed: "" };
+export const SOURCE_BADGE: Record<string, string> = { ai: "✦ AI original", chaos: "🌀 Chaos creation", remix: "♻️ Leftover remix", offline: "📦 Pantry template", library: "🌍 World library", seed: "" };

@@ -110,7 +110,7 @@ p { margin: 0; }
   position: fixed; z-index: 40; left: 50%; transform: translateX(-50%);
   bottom: calc(10px + var(--safe-b));
   width: min(520px, calc(100% - 20px)); height: var(--tabbar-h);
-  display: grid; grid-template-columns: repeat(5, 1fr);
+  display: grid; grid-template-columns: repeat(6, 1fr);
   background: var(--ink); color: var(--paper);
   border-radius: 24px; box-shadow: var(--shadow-lg); padding: 6px;
 }
@@ -619,3 +619,66 @@ mark.amt.opt { font-weight: 600; background: linear-gradient(transparent 60%, co
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   .wheel { transition-duration: 1.2s !important; }
 }
+
+/* ============ Photos (world library) ============ */
+.recipe-photo { display: block; width: 100%; height: 100%; object-fit: cover; background: var(--paper-2); }
+.tabbar a span { white-space: nowrap; }
+@media (max-width: 380px) { .tabbar a { font-size: 0.62rem; } .tabbar svg { width: 20px; height: 20px; } }
+
+/* ============ Search ============ */
+.search-bar.big { margin-top: 2px; }
+.search-bar input[type="search"]::-webkit-search-cancel-button { display: none; }
+.idea-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.idea-row .pill { cursor: pointer; transition: transform 0.15s, border-color 0.15s; }
+.idea-row .pill:hover { border-color: var(--mustard); transform: translateY(-1px); }
+.idea-label { font-size: 1.25rem; color: var(--accent); margin-right: 2px; }
+.cat-scroller {
+  display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x proximity; padding: 4px 2px 8px;
+  margin: 0 -16px; padding-left: 16px; padding-right: 16px; scrollbar-width: none;
+}
+.cat-scroller::-webkit-scrollbar { display: none; }
+.cat-tile {
+  flex: none; scroll-snap-align: start; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  min-width: 78px; padding: 10px 8px; border-radius: 16px; border: 2px solid var(--line); background: var(--card);
+  font-weight: 700; font-size: 0.8rem; transition: transform 0.15s, background 0.2s, border-color 0.2s;
+}
+.cat-tile span { font-size: 1.5rem; line-height: 1.2; }
+.cat-tile:active { transform: scale(0.95); }
+.cat-tile.on { background: var(--accent); border-color: var(--ink); color: var(--on-accent); box-shadow: 0 3px 0 var(--ink); }
+.cuisine-select { width: auto; min-width: 150px; flex: 1; max-width: 240px; }
+.lib-loading { display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; color: var(--muted); }
+.lib-bar { height: 8px; border-radius: 99px; background: var(--paper-2); overflow: hidden; }
+.lib-bar i { display: block; height: 100%; background: var(--mustard); border-radius: 99px; transition: width 0.3s ease; }
+.notice { background: var(--mustard-soft); border-radius: 12px; padding: 10px 14px; font-size: 0.9rem; }
+
+/* ============ Recipe detail additions ============ */
+.need-box {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 14px 16px; border-radius: 16px; border: 2px dashed var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--card));
+}
+.need-box p { flex: 1 1 220px; }
+.need-box.ready { border-color: var(--sage); background: var(--sage-soft); }
+.link-tag { text-decoration: none; color: var(--accent); border-color: var(--accent) !important; }
+.credit { margin-top: 10px; }
+
+/* ============ Resume banner ============ */
+.resume-banner {
+  display: flex; align-items: center; gap: 6px; margin: 4px 0 12px; padding: 6px 6px 6px 14px;
+  background: var(--ink); color: var(--paper); border-radius: 18px; box-shadow: var(--shadow-lg);
+  animation: viewIn 0.35s ease both;
+}
+.resume-banner a { flex: 1; display: flex; align-items: center; gap: 12px; color: inherit; text-decoration: none; min-height: 48px; }
+.resume-banner a > span:first-child { font-size: 1.5rem; animation: wiggle 1.6s ease infinite; }
+.resume-banner strong { display: block; }
+.resume-banner small { opacity: 0.75; }
+.resume-banner .icon-btn { color: var(--paper); }
+.resume-banner .icon-btn:hover { background: color-mix(in srgb, var(--paper) 15%, transparent); }
+
+/* ============ Settings: data ============ */
+.data-box { margin: 18px 0 14px; padding: 14px; border-radius: 16px; background: var(--paper-2); display: flex; flex-direction: column; gap: 8px; }
+.data-box h3 { font-size: 1.35rem; color: var(--accent); }
+.data-box .action-row { margin: 4px 0 0; }
+.search-view .toolbar { flex-wrap: nowrap; }
+.search-view .toolbar .btn { flex: none; }
+.sort-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }

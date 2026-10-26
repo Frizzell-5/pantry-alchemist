@@ -32,6 +32,9 @@ export function hasIngredient(i: RecipeIngredient, pantry: Set<string>) {
   return !!i.ref && pantry.has(i.ref);
 }
 
+/** Names of things to buy, once each (a recipe can list flour twice: for coating and for the sauce). */
+export const uniqueNames = (items: RecipeIngredient[]) => [...new Set(items.map((i) => i.name))];
+
 export function matchRecipe(recipe: Recipe, pantry: Set<string>): Match {
   const have: RecipeIngredient[] = [];
   const missing: RecipeIngredient[] = [];

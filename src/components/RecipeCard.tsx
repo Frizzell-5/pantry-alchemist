@@ -1,5 +1,5 @@
 import { RecipeArt } from "../lib/art.tsx";
-import type { Match } from "../lib/match.ts";
+import { uniqueNames, type Match } from "../lib/match.ts";
 import { actions, ingredientLabel, useStore } from "../lib/store.ts";
 import { difficultyLabel, HaveMeter, SOURCE_BADGE } from "./bits.tsx";
 
@@ -25,6 +25,7 @@ export function StarButton({ id }: { id: string }) {
 export function RecipeCard({ match, index = 0 }: { match: Match; index?: number }) {
   const { recipe, needToBuy, swaps, haveCount, required } = match;
   const ready = needToBuy.length === 0 && swaps.length === 0;
+  const need = uniqueNames(needToBuy);
   return (
     <a href={`#/recipe/${recipe.id}`} className="recipe-card" style={{ animationDelay: `${Math.min(index, 10) * 40}ms` }}>
       <div className="card-art">
@@ -35,13 +36,13 @@ export function RecipeCard({ match, index = 0 }: { match: Match; index?: number 
         {SOURCE_BADGE[recipe.source] && <span className="source-badge">{SOURCE_BADGE[recipe.source]}</span>}
         <h3>{recipe.title}</h3>
         <p className="meta">
-          <span>⏱ {recipe.time} min</span>
+          <span>⏱ {recipe.approxTime ? "~" : ""}{recipe.time} min</span>
           <span>{difficultyLabel[recipe.difficulty]}</span>
           <span>{recipe.cuisine}</span>
         </p>
         <HaveMeter have={haveCount} total={required} />
-        {needToBuy.length > 0 && (
-          <p className="missing"><span className="tag-miss">need</span> {needToBuy.map((m) => m.name).join(", ")}</p>
+        {need.length > 0 && (
+          <p className="missing"><span className="tag-miss">need</span> {need.slice(0, 5).join(", ")}{need.length > 5 && ` +${need.length - 5} more`}</p>
         )}
         {swaps.length > 0 && (
           <p className="swaps">

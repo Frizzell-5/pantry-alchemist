@@ -7,7 +7,7 @@ import type { Recipe } from "../src/lib/types.ts";
 const MODEL = "claude-opus-5-5";
 
 const GenerateRequest = z.object({
-  mode: z.enum(["pantry", "chaos", "leftover"]),
+  mode: z.enum(["pantry", "chaos", "leftover", "dish"]),
   pantry: z.array(z.object({ id: z.string().max(60), label: z.string().max(80) })).max(400),
   focus: z.array(z.string().max(80)).max(12).default([]),
   mood: z.string().max(20).nullable().default(null),
@@ -41,6 +41,9 @@ function buildPrompt(req: GenerateRequest): string {
   } else if (req.mode === "chaos") {
     lines.push(`CHAOS MODE. I want to use up these ingredients in ONE dish: ${req.focus.join(", ")}.`);
     lines.push(`Every one of them must be a starring part of the recipe, not a garnish. It can be playful but it must actually taste good: explain in the description why the combination works. ${req.servings} servings. Return exactly 1 recipe.`);
+  } else if (req.mode === "dish") {
+    lines.push(`DISH REQUEST. I searched for: "${req.focus[0]}". Write ONE recipe for that dish (or the closest real dish if it's vague, e.g. "something with noodles"), for ${req.servings} servings.`);
+    lines.push(`For this request the pantry rule changes: include every ingredient the dish genuinely needs, even if it's not in my pantry. Set pantry_id when an ingredient is in the pantry; ingredients I'd have to buy get pantry_id null and optional false. Where a pantry item is a fair stand-in for something I don't have, use it and say so in a tip. Keep it achievable in a small student kitchen.`);
   } else {
     lines.push(`LEFTOVER REMIX. After cooking, I have these leftovers: ${req.focus.join(", ")}.`);
     if (req.context) lines.push(`They came from: ${req.context}.`);
@@ -73,7 +76,7 @@ class HttpError extends Error {
 
 async function generate(req: GenerateRequest, apiKey: string): Promise<Recipe[]> {
   const knownIds = new Set(req.pantry.map((p) => p.id));
-  const source = req.mode === "pantry" ? "ai" : req.mode === "chaos" ? "chaos" : "remix";
+  const source = req.mode === "pantry" || req.mode === "dish" ? "ai" : req.mode === "chaos" ? "chaos" : "remix";
   const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content: buildPrompt(req) }];
 
   // One repair round: if the JSON parses but fails our checks, show the model
@@ -135,7 +138,7 @@ export async function handleApiRequest(req: Request, env: ApiEnv): Promise<Respo
       }
       const parsed = GenerateRequest.safeParse(await readJson(req));
       if (!parsed.success) throw new HttpError(400, "Bad request: " + parsed.error.issues.map((i) => i.path.join(".")).join(", "));
-      if (parsed.data.mode !== "pantry" && parsed.data.focus.length === 0) throw new HttpError(400, "Pick at least one ingredient.");
+      if (parsed.data.mode !== "pantry" && parsed.data.focus.length === 0) throw new HttpError(400, parsed.data.mode === "dish" ? "Type a dish to search for." : "Pick at least one ingredient.");
       const recipes = await generate(parsed.data, apiKey);
       return send(200, { recipes });
     }

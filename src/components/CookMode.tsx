@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { go, useWakeLock } from "../lib/hooks.ts";
 import { playFanfare, unlockAudio } from "../lib/sound.ts";
-import { actions, useStore } from "../lib/store.ts";
+import { actions, getState, useStore } from "../lib/store.ts";
 import { fmtClock, timerActions, useTimers } from "../lib/timers.ts";
 import type { Recipe } from "../lib/types.ts";
 import { formatIngredient, renderStep } from "../lib/units.ts";
@@ -102,14 +102,18 @@ function FinishScreen({ recipe, onBack }: { recipe: Recipe; onBack: () => void }
 
 export function CookMode({ recipe, servings }: { recipe: Recipe; servings?: number }) {
   const units = useStore((s) => s.settings.units);
-  const [step, setStep] = useState(0);
+  const total = recipe.steps.length;
+  // Pick up where you left off if you closed the app mid-recipe (within 12 hours).
+  const [step, setStep] = useState(() => {
+    const p = getState().cookProgress;
+    return p && p.recipeId === recipe.id && Date.now() - p.at < 12 * 3600_000 && p.step < total ? p.step : 0;
+  });
   const [showIngs, setShowIngs] = useState(false);
   const [prepped, setPrepped] = useState<Set<string>>(new Set());
   const [dir, setDir] = useState<"next" | "prev">("next");
   const logged = useRef(false);
   const wake = useWakeLock(true);
   const factor = (servings ?? recipe.servings) / recipe.servings;
-  const total = recipe.steps.length;
   const finished = step >= total;
   const timers = useTimers();
 
@@ -117,6 +121,10 @@ export function CookMode({ recipe, servings }: { recipe: Recipe; servings?: numb
     setDir(n > step ? "next" : "prev");
     setStep(Math.max(0, Math.min(total, n)));
   };
+
+  useEffect(() => {
+    if (!finished) actions.setCookProgress({ recipeId: recipe.id, step, servings: servings ?? recipe.servings, at: Date.now() });
+  }, [step, finished, recipe, servings]);
 
   useEffect(() => {
     if (finished && !logged.current) {

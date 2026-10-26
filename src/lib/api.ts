@@ -2,7 +2,7 @@ import { getState } from "./store.ts";
 import type { Recipe } from "./types.ts";
 
 export interface GeneratePayload {
-  mode: "pantry" | "chaos" | "leftover";
+  mode: "pantry" | "chaos" | "leftover" | "dish";
   pantry: { id: string; label: string }[];
   focus?: string[];
   mood?: string | null;

@@ -2,6 +2,7 @@ import { useSyncExternalStore } from "react";
 import { INGREDIENTS, STARTER_PANTRY } from "../data/ingredients.ts";
 import { SEED_RECIPES } from "../data/recipes.ts";
 import { ACHIEVEMENTS } from "./achievements.ts";
+import { getLibraryRecipe, isLibraryId, setExtraIngredients } from "./library.ts";
 import { DEFAULT_FILTERS, type Filters } from "./match.ts";
 import type { CookbookEntry, CookLog, Ingredient, PantryItem, Recipe } from "./types.ts";
 import type { UnitSystem } from "./units.ts";
@@ -23,11 +24,23 @@ export interface Stats {
   leftoverRemixes: number;
 }
 
+export interface CookProgress {
+  recipeId: string;
+  step: number;
+  servings: number;
+  at: number;
+}
+
 export interface State {
   version: 1;
   pantry: Record<string, PantryItem>;
   customIngredients: Ingredient[];
   aiRecipes: Recipe[];
+  /** World-library dishes the user saved, starred or cooked, kept so they work offline. */
+  libraryRecipes: Recipe[];
+  recentSearches: string[];
+  /** Where you left off in cook mode, so closing the app doesn't lose your place. */
+  cookProgress: CookProgress | null;
   cookbook: Record<string, CookbookEntry>;
   starred: string[];
   shoppingChecked: string[];
@@ -47,6 +60,9 @@ function initial(): State {
     pantry: Object.fromEntries(STARTER_PANTRY.map((id) => [id, { id, addedAt: now }])),
     customIngredients: [],
     aiRecipes: [],
+    libraryRecipes: [],
+    recentSearches: [],
+    cookProgress: null,
     cookbook: {},
     starred: [],
     shoppingChecked: [],
@@ -58,19 +74,24 @@ function initial(): State {
   };
 }
 
+/** Merges saved data over defaults so older saves pick up new fields. */
+function hydrate(saved: Partial<State>): State {
+  const base = initial();
+  return {
+    ...base,
+    ...saved,
+    stats: { ...base.stats, ...saved.stats },
+    settings: { ...base.settings, ...saved.settings },
+    filters: { ...base.filters, ...saved.filters },
+  };
+}
+
 function load(): State {
   const base = initial();
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return base;
-    const saved = JSON.parse(raw) as Partial<State>;
-    return {
-      ...base,
-      ...saved,
-      stats: { ...base.stats, ...saved.stats },
-      settings: { ...base.settings, ...saved.settings },
-      filters: { ...base.filters, ...saved.filters },
-    };
+    return hydrate(JSON.parse(raw) as Partial<State>);
   } catch {
     return base;
   }
@@ -78,6 +99,18 @@ function load(): State {
 
 let state: State = load();
 const listeners = new Set<() => void>();
+setExtraIngredients(() => state.customIngredients);
+
+// Another tab (or the installed app) saved: pick up its changes instead of overwriting them later.
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (e) => {
+    if (e.key !== KEY || !e.newValue) return;
+    try {
+      state = hydrate(JSON.parse(e.newValue) as Partial<State>);
+      listeners.forEach((l) => l());
+    } catch { /* ignore a half-written value */ }
+  });
+}
 
 type Toast = { id: number; kind: "achievement" | "info" | "error"; title: string; body?: string; emoji?: string };
 let toasts: Toast[] = [];
@@ -134,12 +167,25 @@ export function useStore<T>(select: (s: State) => T): T {
 
 // ---------- derived lookups ----------
 
-let cachedAll: { ai: Recipe[]; all: Recipe[] } | null = null;
+let cachedAll: { ai: Recipe[]; lib: Recipe[]; all: Recipe[] } | null = null;
+/** Seed recipes, AI creations and saved world-library dishes. */
 export function allRecipes(s: State = state): Recipe[] {
-  if (cachedAll?.ai !== s.aiRecipes) cachedAll = { ai: s.aiRecipes, all: [...SEED_RECIPES, ...s.aiRecipes] };
+  if (cachedAll?.ai !== s.aiRecipes || cachedAll.lib !== s.libraryRecipes) {
+    cachedAll = { ai: s.aiRecipes, lib: s.libraryRecipes, all: [...SEED_RECIPES, ...s.aiRecipes, ...s.libraryRecipes] };
+  }
   return cachedAll.all;
 }
-export const findRecipe = (id: string, s: State = state) => allRecipes(s).find((r) => r.id === id);
+export const findRecipe = (id: string, s: State = state) => allRecipes(s).find((r) => r.id === id) ?? getLibraryRecipe(id);
+
+/** Library dishes are kept on the device once they're saved, starred or cooked. */
+function keepLibrary(s: State, id: string, recipe = getLibraryRecipe(id)): State {
+  if (!isLibraryId(id) || !recipe || s.libraryRecipes.some((r) => r.id === id)) return s;
+  return { ...s, libraryRecipes: [...s.libraryRecipes, recipe] };
+}
+function releaseLibrary(s: State, id: string): State {
+  if (!isLibraryId(id) || s.cookbook[id] || s.starred.includes(id) || s.cookLog.some((l) => l.recipeId === id)) return s;
+  return { ...s, libraryRecipes: s.libraryRecipes.filter((r) => r.id !== id) };
+}
 
 let cachedCatalog: { custom: Ingredient[]; all: Ingredient[] } | null = null;
 export function catalog(s: State = state): Ingredient[] {
@@ -223,22 +269,24 @@ export const actions = {
     update((s) => ({ ...s, aiRecipes: s.aiRecipes.filter((r) => r.id !== id), starred: s.starred.filter((x) => x !== id) }));
   },
   toggleStar(id: string) {
-    update((s) => ({ ...s, starred: s.starred.includes(id) ? s.starred.filter((x) => x !== id) : [...s.starred, id] }));
+    update((s) => s.starred.includes(id)
+      ? releaseLibrary({ ...s, starred: s.starred.filter((x) => x !== id) }, id)
+      : keepLibrary({ ...s, starred: [...s.starred, id] }, id));
   },
   saveToCookbook(id: string) {
-    update((s) => (s.cookbook[id] ? s : { ...s, cookbook: { ...s.cookbook, [id]: { recipeId: id, savedAt: Date.now(), notes: "", rating: 0, cookedCount: 0 } } }));
+    update((s) => (s.cookbook[id] ? s : keepLibrary({ ...s, cookbook: { ...s.cookbook, [id]: { recipeId: id, savedAt: Date.now(), notes: "", rating: 0, cookedCount: 0 } } }, id)));
   },
   removeFromCookbook(id: string) {
     update((s) => {
       const cookbook = { ...s.cookbook };
       delete cookbook[id];
-      return { ...s, cookbook };
+      return releaseLibrary({ ...s, cookbook }, id);
     });
   },
   updateEntry(id: string, patch: Partial<CookbookEntry>) {
     update((s) => {
       const entry = s.cookbook[id] ?? { recipeId: id, savedAt: Date.now(), notes: "", rating: 0, cookedCount: 0 };
-      return { ...s, cookbook: { ...s.cookbook, [id]: { ...entry, ...patch } } };
+      return keepLibrary({ ...s, cookbook: { ...s.cookbook, [id]: { ...entry, ...patch } } }, id);
     });
   },
   logCook(recipe: Recipe) {
@@ -253,8 +301,27 @@ export const actions = {
       };
       const entry = s.cookbook[recipe.id];
       const cookbook = entry ? { ...s.cookbook, [recipe.id]: { ...entry, cookedCount: entry.cookedCount + 1, lastCooked: Date.now() } } : s.cookbook;
-      return { ...s, cookLog: [...s.cookLog, log], cookbook };
+      return keepLibrary({ ...s, cookLog: [...s.cookLog, log], cookbook, cookProgress: null }, recipe.id, recipe);
     });
+  },
+  setCookProgress(p: CookProgress | null) {
+    update((s) => ({ ...s, cookProgress: p }));
+  },
+  rememberSearch(q: string) {
+    const clean = q.trim().slice(0, 40);
+    if (clean.length < 2) return;
+    update((s) => ({ ...s, recentSearches: [clean, ...s.recentSearches.filter((x) => x.toLowerCase() !== clean.toLowerCase())].slice(0, 8) }));
+  },
+  clearSearches() {
+    update((s) => ({ ...s, recentSearches: [] }));
+  },
+  /** Replaces everything with a backup file's contents. Returns false if the file isn't a backup. */
+  restoreBackup(data: unknown): boolean {
+    const d = data as Partial<State> & { app?: string };
+    const st = (d?.app === "pantry-alchemist" ? (d as { state?: Partial<State> }).state : d) as Partial<State> | undefined;
+    if (!st || st.version !== 1 || typeof st.pantry !== "object" || typeof st.cookbook !== "object") return false;
+    update(() => hydrate(st));
+    return true;
   },
   bumpStat(key: keyof Stats) {
     update((s) => ({ ...s, stats: { ...s.stats, [key]: s.stats[key] + 1 } }));
@@ -277,3 +344,17 @@ export const actions = {
     });
   },
 };
+
+export function backupBlob(): Blob {
+  return new Blob([JSON.stringify({ app: "pantry-alchemist", exportedAt: new Date().toISOString(), state }, null, 1)], { type: "application/json" });
+}
+
+/** Asks the browser not to evict our saved data under storage pressure (granted silently for installed apps). */
+export async function requestPersistentStorage(): Promise<boolean> {
+  try {
+    if (await navigator.storage?.persisted?.()) return true;
+    return (await navigator.storage?.persist?.()) ?? false;
+  } catch {
+    return false;
+  }
+}

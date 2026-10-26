@@ -41,7 +41,7 @@ export function PrintCookbook() {
             <p className="cover-by">{settings.name ? `by ${settings.name}` : "from my kitchen"}</p>
             <div className={`cover-collage n${coverArt.length}`}>
               {coverArt.map((r, i) => (
-                <div key={r.id} className="cover-tile" style={{ transform: `rotate(${((i * 37) % 9) - 4}deg)` }}><RecipeArt recipe={r} /></div>
+                <div key={r.id} className="cover-tile" style={{ transform: `rotate(${((i * 37) % 9) - 4}deg)` }}><RecipeArt recipe={r} size="medium" eager /></div>
               ))}
             </div>
             <p className="cover-foot">Pantry Alchemist · {numbered.length} recipes made from what I had</p>
@@ -70,7 +70,7 @@ export function PrintCookbook() {
         {chapters.map(({ meal, recipes }) => (
           <div key={meal}>
             <section className="page chapter-page" style={{ ["--ch" as string]: paletteFor(recipes[0].id).bg }}>
-              <div className="chapter-art"><RecipeArt recipe={recipes[0]} /></div>
+              <div className="chapter-art"><RecipeArt recipe={recipes[0]} size="medium" eager /></div>
               <p className="cover-eyebrow">Chapter {chapters.findIndex((c) => c.meal === meal) + 1}</p>
               <h2 className="chapter-name">{CHAPTERS[meal].title}</h2>
               <p className="chapter-blurb-print">{CHAPTERS[meal].blurb}</p>
@@ -91,7 +91,7 @@ export function PrintCookbook() {
                         {diet.vegan ? " · Vegan" : diet.vegetarian ? " · Vegetarian" : ""}
                       </p>
                     </div>
-                    <div className="rp-art"><RecipeArt recipe={r} /></div>
+                    <div className="rp-art"><RecipeArt recipe={r} size="medium" eager /></div>
                   </header>
                   <div className="rp-body">
                     <div className="rp-ings">

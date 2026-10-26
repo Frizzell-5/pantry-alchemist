@@ -1,7 +1,11 @@
 // Pantry Alchemist service worker: makes the app installable and usable offline.
 // Pages: network first (fresh deploys win), cached copy when offline.
 // Hashed build assets: cache first. Fonts: stale-while-revalidate. /api: never cached.
-const VERSION = "pa-v1";
+// World recipe library (TheMealDB): data stale-while-revalidate, photos cache-first (capped).
+const VERSION = "pa-v2";
+const LIBRARY = "pa-library-v1";
+const PHOTOS = "pa-photos-v1";
+const MAX_PHOTOS = 400;
 const SHELL = ["/", "/app", "/manifest.webmanifest", "/favicon.svg", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {
@@ -20,7 +24,7 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil((async () => {
-    for (const key of await caches.keys()) if (key !== VERSION) await caches.delete(key);
+    for (const key of await caches.keys()) if (![VERSION, LIBRARY, PHOTOS].includes(key)) await caches.delete(key);
     await self.clients.claim();
   })());
 });
@@ -30,6 +34,39 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin === location.origin && url.pathname.startsWith("/api/")) return;
+
+  if (url.hostname === "www.themealdb.com" && url.pathname.startsWith("/api/")) {
+    event.respondWith((async () => {
+      const cache = await caches.open(LIBRARY);
+      const hit = await cache.match(req);
+      const net = fetch(req).then((res) => {
+        if (res.ok) cache.put(req, res.clone());
+        return res;
+      });
+      if (hit) {
+        event.waitUntil(net.catch(() => {}));
+        return hit;
+      }
+      return net;
+    })());
+    return;
+  }
+
+  if (url.hostname === "www.themealdb.com" && url.pathname.startsWith("/images/")) {
+    event.respondWith((async () => {
+      const cache = await caches.open(PHOTOS);
+      const hit = await cache.match(req);
+      if (hit) return hit;
+      const res = await fetch(req);
+      if (res.ok || res.type === "opaque") {
+        await cache.put(req, res.clone());
+        const keys = await cache.keys();
+        for (const old of keys.slice(0, Math.max(0, keys.length - MAX_PHOTOS))) await cache.delete(old);
+      }
+      return res;
+    })());
+    return;
+  }
 
   if (req.mode === "navigate") {
     event.respondWith((async () => {

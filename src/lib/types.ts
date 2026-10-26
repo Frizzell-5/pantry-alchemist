@@ -60,10 +60,17 @@ export interface Recipe {
   ingredients: RecipeIngredient[];
   steps: Step[];
   tips: string[];
-  source: "seed" | "ai" | "chaos" | "remix" | "offline";
+  source: "seed" | "ai" | "chaos" | "remix" | "offline" | "library";
   /** Diet flags the model claimed; used only when ingredients can't be mapped. */
   claimedDiet?: { vegetarian: boolean; vegan: boolean };
   createdAt?: number;
+  /** World-library dishes come with a photo, an optional video and the original source. */
+  image?: string;
+  video?: string;
+  sourceUrl?: string;
+  category?: string;
+  /** Time is estimated from the method rather than stated by the recipe. */
+  approxTime?: boolean;
 }
 
 export interface PantryItem {

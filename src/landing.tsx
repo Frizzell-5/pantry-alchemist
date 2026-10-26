@@ -162,9 +162,11 @@ function InstallHelp({ platform, onClose }: { platform: ReturnType<typeof useIns
 
 const FEATURES = [
   { emoji: "🧺", title: "Tap what you've got", body: "~150 ingredients across 9 shelves, a search bar, quick-add for the weird stuff, and “running low” flags. It remembers everything." },
+  { emoji: "🔎", title: "Search 800+ dishes", body: "Craving something specific? Search dishes from 40+ cuisines, with photos. Each one shows what you already have and the exact list of what to buy." },
+  { emoji: "💾", title: "Never loses your stuff", body: "Pantry, saved recipes, notes, badges, even the step you were on in cook mode: all saved on your phone, there when you come back. Back up with one tap." },
   { emoji: "🎯", title: "Ranked by what you'd have to buy", body: "Every card says “you have 8/9” and exactly what's missing. Usually nothing." },
   { emoji: "🔁", title: "Swaps from your own shelf", body: "No butter? Use ¾ the olive oil. No lemon? Half as much vinegar. Suggested automatically." },
-  { emoji: "✨", title: "AI alchemy", body: "When the 32 built-ins aren't enough, Claude invents brand-new recipes from your exact pantry. Checked and validated before you see them." },
+  { emoji: "✨", title: "AI alchemy", body: "Claude invents brand-new recipes from your exact pantry, or writes any dish you search for that isn't in the library. Checked and validated before you see them." },
   { emoji: "🔥", title: "Cook mode for a propped-up phone", body: "One giant step at a time, amounts inline, several timers with a loud ding, and the screen stays awake." },
   { emoji: "📖", title: "Your own printable cookbook", body: "Save, rate, scribble notes, then export a designed PDF with your name on the cover and chapters by meal." },
 ];

@@ -14,7 +14,7 @@ export interface Achievement {
 
 const uniqueUsed = (s: State) => new Set(s.cookLog.flatMap((l) => l.ingredientRefs)).size;
 const cuisinesCooked = (s: State) => {
-  const all = [...SEED_RECIPES, ...s.aiRecipes];
+  const all = [...SEED_RECIPES, ...s.aiRecipes, ...s.libraryRecipes];
   return new Set(s.cookLog.map((l) => all.find((r) => r.id === l.recipeId)).filter(Boolean).map((r) => cuisineFamily(r!.cuisine))).size;
 };
 const dayStreak = (s: State) => {
@@ -44,5 +44,6 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "critic", emoji: "📝", title: "Tough Critic", description: "Rated 5 recipes.", check: (s) => Object.values(s.cookbook).filter((e) => e.rating > 0).length >= 5, progress: (s) => [Object.values(s.cookbook).filter((e) => e.rating > 0).length, 5] },
   { id: "chefs-kiss", emoji: "🤌", title: "Chef's Kiss", description: "Gave something a perfect 5 stars.", check: (s) => Object.values(s.cookbook).some((e) => e.rating === 5) },
   { id: "author", emoji: "📖", title: "Author, Author", description: "Saved 8 recipes to your cookbook.", check: (s) => Object.keys(s.cookbook).length >= 8, progress: (s) => [Object.keys(s.cookbook).length, 8] },
+  { id: "explorer", emoji: "🧭", title: "Explorer", description: "Saved 3 dishes from the world recipe library.", check: (s) => s.libraryRecipes.filter((r) => s.cookbook[r.id]).length >= 3, progress: (s) => [s.libraryRecipes.filter((r) => s.cookbook[r.id]).length, 3] },
   { id: "stocked", emoji: "🏪", title: "Fully Stocked", description: "Checked off 40 pantry items.", check: (s) => Object.keys(s.pantry).length >= 40, progress: (s) => [Object.keys(s.pantry).length, 40] },
 ];

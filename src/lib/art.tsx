@@ -1,9 +1,10 @@
-import { useId, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
+import { thumb } from "./library.ts";
 import type { Recipe } from "./types.ts";
 
 // Each recipe gets a deterministic illustration: a palette, a background
-// pattern, a plate, and doodles chosen from its main ingredients. Everything is
-// drawn here as SVG, so there are no external images.
+// pattern, a plate, and doodles chosen from its main ingredients, drawn as SVG.
+// World-library dishes show their real photo instead (see RecipeArt below).
 
 export interface Palette { bg: string; ink: string; a: string; b: string; c: string }
 
@@ -280,7 +281,7 @@ function motifsFor(recipe: Recipe): string[] {
   return out.length ? out.slice(0, 5) : ["generic"];
 }
 
-export function RecipeArt({ recipe, className, rounded = true }: { recipe: Recipe; className?: string; rounded?: boolean }) {
+function GeneratedArt({ recipe, className, rounded = true }: { recipe: Recipe; className?: string; rounded?: boolean }) {
   const uid = useId().replace(/:/g, "");
   const seed = hash(recipe.id);
   const r = rng(seed);
@@ -341,4 +342,13 @@ export function RecipeArt({ recipe, className, rounded = true }: { recipe: Recip
       <rect width="200" height="200" fill="#000" filter={`url(#g${uid})`} opacity={0.6} />
     </svg>
   );
+}
+
+/** Real photo for world-library dishes (falls back to generated art offline); hand-drawn art for everything else. */
+export function RecipeArt({ recipe, className, rounded = true, size = "small", eager = false }: { recipe: Recipe; className?: string; rounded?: boolean; size?: "small" | "medium" | "large"; eager?: boolean }) {
+  const [failed, setFailed] = useState(false);
+  if (recipe.image && !failed) {
+    return <img className={`recipe-photo ${className ?? ""}`} src={thumb(recipe.image, size)} alt="" crossOrigin="anonymous" loading={eager ? "eager" : "lazy"} decoding="async" onError={() => setFailed(true)} />;
+  }
+  return <GeneratedArt recipe={recipe} className={className} rounded={rounded} />;
 }

@@ -80,7 +80,7 @@ export function formatIngredient(ing: RecipeIngredient, factor: number, system: 
   const cat = ing.ref ? INGREDIENT_MAP.get(ing.ref) : undefined;
   let name = ing.name;
   if (ing.amount == null || ing.unit === "to taste") {
-    return { qty: "", name, text: `${name}, to taste` };
+    return { qty: "", name, text: ing.note ? `${name} (${ing.note.toLowerCase()})` : `${name}, to taste` };
   }
   const v = ing.amount * factor;
   let qty: string;

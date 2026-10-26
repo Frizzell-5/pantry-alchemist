@@ -31,7 +31,7 @@ export function useWakeLock(active: boolean) {
 }
 
 export function useHashRoute(): string[] {
-  const read = () => (location.hash.replace(/^#\/?/, "") || "pantry").split("/").map(decodeURIComponent);
+  const read = () => (location.hash.replace(/^#\/?/, "").replace(/\?.*$/, "") || "pantry").split("/").map(decodeURIComponent);
   const [route, setRoute] = useState(read);
   useEffect(() => {
     const on = () => {

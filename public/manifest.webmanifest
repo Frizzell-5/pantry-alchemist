@@ -9,16 +9,50 @@
   "orientation": "portrait",
   "background_color": "#f6ecd9",
   "theme_color": "#c8553d",
-  "categories": ["food", "lifestyle"],
+  "categories": [
+    "food",
+    "lifestyle"
+  ],
   "icons": [
-    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
-    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
   ],
   "shortcuts": [
-    { "name": "My pantry", "url": "/app#/pantry" },
-    { "name": "What can I cook?", "url": "/app#/recipes" },
-    { "name": "Fridge Roulette", "url": "/app#/play/roulette" }
+    {
+      "name": "Search dishes",
+      "short_name": "Search",
+      "url": "/app#/search"
+    },
+    {
+      "name": "My pantry",
+      "url": "/app#/pantry"
+    },
+    {
+      "name": "What can I cook?",
+      "url": "/app#/recipes"
+    },
+    {
+      "name": "Fridge Roulette",
+      "url": "/app#/play/roulette"
+    }
   ]
 }
