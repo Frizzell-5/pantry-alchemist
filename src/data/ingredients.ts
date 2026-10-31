@@ -158,6 +158,7 @@ const ROWS: Record<Category, Row[]> = {
     ["brown_sugar", "Brown sugar"],
     ["baking_powder", "Baking powder"],
     ["baking_soda", "Baking soda"],
+    ["yeast", "Yeast (instant / active dry)"],
     ["vanilla", "Vanilla extract"],
     ["cocoa", "Cocoa powder"],
     ["chocolate_chips", "Chocolate chips", "d"],

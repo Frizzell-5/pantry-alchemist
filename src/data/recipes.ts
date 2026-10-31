@@ -437,4 +437,26 @@ export const SEED_RECIPES: Recipe[] = [
       S("Serve with [[parmesan]] and a drizzle of oil."),
     ],
   }),
+  R({
+    id: "frog-bread", title: "Frog Bread", cuisine: "Japanese-inspired", mealType: "snack",
+    description: "Soft, buttery milk bread shaped like a happy little frog. Zero frogs were harmed (or used).",
+    servings: 4, time: 120, difficulty: "medium", equipment: ["oven"], moods: ["impress", "cozy"],
+    ingredients: [I("flour", 2.5, "cup"), I("yeast", 1, "pack", { note: "2¼ tsp" }), I("sugar", 2, "tbsp"), I("salt", 1, "tsp"), I("milk", 0.75, "cup", { note: "warm, not hot" }), I("butter", 3, "tbsp", { note: "softened" }), I("eggs", 1, "whole", { optional: true, note: "for a shiny egg wash" }), I("chocolate_chips", 2, "whole", { optional: true, note: "for the eyes" })],
+    steps: [
+      S("Stir [[yeast]] and [[sugar]] into the warm [[milk]]. Wait until it looks foamy.", 5, "Bloom yeast"),
+      S("Mix in [[flour]] and [[salt]], then knead in the soft [[butter]] until the dough is smooth and springy.", 8, "Knead dough"),
+      S("Cover the bowl and let the dough rise somewhere warm until doubled.", 60, "First rise"),
+      S("Punch it down. Pull off two walnut-sized pieces for the eyes and four small pieces for the feet; shape the rest into a smooth, slightly flat oval for the body."),
+      S("On a lined tray, press the two eye balls onto the top of the body and tuck the four little feet underneath at the sides. Snip a smile with scissors."),
+      S("Cover loosely and let the frog puff up again. Heat the oven to 350°F meanwhile.", 25, "Second rise"),
+      S("Brush with beaten [[eggs]] and press a [[chocolate_chips]] into each eye."),
+      S("Bake until deep golden and hollow-sounding when tapped underneath.", 22, "Bake frog"),
+      S("Cool 10 minutes, then tear off a foot and enjoy."),
+    ],
+    tips: [
+      "Want a green frog? Knead in 1 tsp matcha or a spoon of blended spinach with the flour.",
+      "Make 4 mini frogs instead of one big one: same steps, bake about 15 minutes.",
+      "No eggs? Brush with milk for a softer golden finish.",
+    ],
+  }),
 ];

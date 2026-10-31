@@ -2,7 +2,7 @@
 // Pages: network first (fresh deploys win), cached copy when offline.
 // Hashed build assets: cache first. Fonts: stale-while-revalidate. /api: never cached.
 // World recipe library (TheMealDB): data stale-while-revalidate, photos cache-first (capped).
-const VERSION = "pa-v2";
+const VERSION = "pa-v3";
 const LIBRARY = "pa-library-v1";
 const PHOTOS = "pa-photos-v1";
 const MAX_PHOTOS = 400;
